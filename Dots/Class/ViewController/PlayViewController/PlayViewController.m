@@ -19,22 +19,122 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
+    numOfDot = 6;
+    self.numOfRow.text = [NSString stringWithFormat:@"%d",numOfDot];
+    size = self.map.frame.size.width/(numOfDot+0.5);
     [self createCircles];
+    turn = 0;
+    self.progressView.progress = 0;
+    CGAffineTransform transform = CGAffineTransformMakeScale(1.0f, 3.0f);
+    self.progressView.transform = transform;
+    self.lbTurns.text = @"0";
     
-    power = 10;
+    power = 0;
     
     self.lblPower.text = [NSString stringWithFormat:@"%d",power];
     
     redList = [[NSMutableArray alloc] init];
     noTap = NO;
+    
+    UIPanGestureRecognizer *pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(panOnMap:)];
+    [map addGestureRecognizer:pan];
     // Do any additional setup after loading the view from its nib.
+}
+
+- (CGFloat) pointPairToBearingDegrees:(CGPoint)startingPoint secondPoint:(CGPoint) endingPoint
+{
+    CGPoint originPoint = CGPointMake(endingPoint.x - startingPoint.x, endingPoint.y - startingPoint.y); // get origin point to origin by subtracting end from start
+    float bearingRadians = atan2f(originPoint.y, originPoint.x); // get bearing in radians
+    float bearingDegrees = bearingRadians * (180.0 / M_PI); // convert to degrees
+    bearingDegrees = (bearingDegrees > 0.0 ? bearingDegrees : (360.0 + bearingDegrees)); // correct discontinuity
+    return bearingDegrees;
+}
+
+- (Circle *)circleFromDegree:(float)degree
+{
+    degree += 30;
+    CGPoint point;
+    if (degree<60)
+    {
+        point = [blueCircle corOfCircleBesidePos:3];
+    }else if (degree<120)
+    {
+        point = [blueCircle corOfCircleBesidePos:2];
+        
+    }else if (degree<180)
+    {
+        point = [blueCircle corOfCircleBesidePos:1];
+        
+    }else if (degree<240)
+    {
+        point = [blueCircle corOfCircleBesidePos:6];
+        
+    }else if (degree<300)
+    {
+        point = [blueCircle corOfCircleBesidePos:5];
+        
+    }else if (degree<360)
+    {
+        point = [blueCircle corOfCircleBesidePos:4];
+        
+    }
+    
+    return [self getCircleRow:point.x Col:point.y];
+}
+
+- (void)panOnMap:(UISwipeGestureRecognizer *)gesture
+{
+    if(gesture.state == UIGestureRecognizerStateBegan)
+    {
+        // Store the initial touch so when we change positions we do not snap
+        startPoint = [gesture locationInView:gesture.view];
+        
+    }
+    
+    endPoint = [gesture locationInView:gesture.view];
+    float degree = 360-[self pointPairToBearingDegrees:startPoint secondPoint:endPoint];
+    
+    if ([self circleFromDegree:degree])
+    {
+        
+        if (highlightingCircle !=  [self circleFromDegree:degree]) {
+            if (highlightingCircle)
+            {
+                [highlightingCircle.highlightImageView setHidden:YES];
+            }
+            
+            highlightingCircle = [self circleFromDegree:degree];
+            [highlightingCircle.highlightImageView setHidden:NO];
+        }
+    }
+    
+
+    
+    if(gesture.state == UIGestureRecognizerStateEnded)
+    {
+        //All fingers are lifted.
+
+        NSLog(@"degree %f",degree);
+        
+        
+        if (highlightingCircle)
+        {
+            [highlightingCircle.highlightImageView setHidden:YES];
+            [self tapOnCircle:highlightingCircle];
+        }
+    }
+    
+    
+//    NSLog(@"end point : %f %f", endPoint.x, endPoint.y);
+    
+
+    
 }
 
 - (Circle *)createACircleAtPoint:(CGPoint)point temp:(BOOL)temp color:(NSString *)color delegate:(id)delegate
 {
     Circle *circle = [[[NSBundle mainBundle] loadNibNamed:@"Circle" owner:nil options:nil] objectAtIndex:0];
-    [circle setFrame:CGRectMake(0, 0, 30, 30)];
-    
+    [circle setFrame:CGRectMake(0, 0, size, size)];
     int x = point.x;
     int y = point.y;
     
@@ -42,13 +142,13 @@
     
     if (y%2==1)
     {
-        actualPoint.x = 30*x+15+15;
+        actualPoint.x = size*x+size;
     }else
     {
-        actualPoint.x = 30*x+15;
+        actualPoint.x = size*x+size/2;
     }
     
-    actualPoint.y = y*30+15;
+    actualPoint.y = y*size+size/2;
     circle.center = actualPoint;
     
     [circle setColor:color];
@@ -67,7 +167,7 @@
 
 - (Circle *)getCircleRow:(int)x Col:(int)y
 {
-    if ((x>8)||(y>8)||(x<0)||(y<0))
+    if ((x>(numOfDot-1))||(y>(numOfDot-1))||(x<0)||(y<0))
     {
         return nil;
     }
@@ -77,14 +177,14 @@
 - (void)setBorderCircles
 {
     borderCircles = [[NSMutableArray alloc] init];
-    for (int i=0;i<9;i++)
+    for (int i=0;i<numOfDot;i++)
     {
         [borderCircles addObject:[self getCircleRow:i Col:0]];
-//        [borderCircles addObject:[self getCircleRow:i Col:8]];
-//        
-//        [borderCircles addObject:[self getCircleRow:0 Col:i]];
-//        
-//        [borderCircles addObject:[self getCircleRow:8 Col:i]];
+        [borderCircles addObject:[self getCircleRow:i Col:(numOfDot-1)]];
+        
+        [borderCircles addObject:[self getCircleRow:0 Col:i]];
+        
+        [borderCircles addObject:[self getCircleRow:(numOfDot -1) Col:i]];
     }
     
     NSSet *set = [NSSet setWithArray:borderCircles];
@@ -93,12 +193,14 @@
 
 - (void)createCircles
 {
-    for (int i=0;i<9;i++)
-        for (int j=0;j<9;j++)
+    for (int i=0;i<numOfDot;i++)
+        for (int j=0;j<numOfDot;j++)
             [self createACircleAtPoint:CGPointMake(i, j) temp:NO color:@"gray" delegate:self];
     
-    [[self getCircleRow:4 Col:5] setColor:@"blue"];
-    blueCircle = [self getCircleRow:4 Col:5];
+    int x = numOfDot/2;
+    int y = numOfDot/2;
+    [[self getCircleRow:x Col:y] setColor:@"blue"];
+    blueCircle = [self getCircleRow:x Col:y];
     [self setDistanceForAll];
     
     [self setBorderCircles];
@@ -128,9 +230,9 @@
 
 - (void)setDistanceForAll
 {
-    for (int i=0;i<9;i++)
+    for (int i=0;i<numOfDot;i++)
     {
-        for (int j=0;j<9;j++)
+        for (int j=0;j<numOfDot;j++)
         {
             [self getCircleRow:i Col:j].distance = 100;
 //            [self getCircleRow:i Col:j].lbDistance.text = [NSString stringWithFormat:@"%d",100];
@@ -226,7 +328,7 @@
     if (![self anyRoomForRedCircleComming])
     {
         dispatch_async(dispatch_get_main_queue(), ^{
-            UIAlertView *al = [[UIAlertView alloc] initWithTitle:@"Game over" message:@"No more room for red" delegate:nil cancelButtonTitle:@"Suck" otherButtonTitles:nil, nil];
+            UIAlertView *al = [[UIAlertView alloc] initWithTitle:@"Game over" message:@"No more room for red" delegate:self cancelButtonTitle:@"Suck" otherButtonTitles:nil, nil];
             [al show];
         });
         return;
@@ -265,7 +367,7 @@
             if (power == 0)
             {
                 dispatch_async(dispatch_get_main_queue(), ^{
-                    UIAlertView *al = [[UIAlertView alloc] initWithTitle:@"Game over" message:@"The red catched blue" delegate:nil cancelButtonTitle:@"Suck" otherButtonTitles:nil, nil];
+                    UIAlertView *al = [[UIAlertView alloc] initWithTitle:@"Game over" message:@"The red catched blue" delegate:self cancelButtonTitle:@"Suck" otherButtonTitles:nil, nil];
                     [al show];
                 });
                 
@@ -273,7 +375,7 @@
             {
                 power --;
                 c2.numOfRedMoving --;
-                c2.lbDistance.text = [NSString stringWithFormat:@"%d",c2.numOfRedMoving];
+//                c2.lbDistance.text = [NSString stringWithFormat:@"%d",c2.numOfRedMoving];
                 self.lblPower.text = [NSString stringWithFormat:@"%d",power];
             }
         }else
@@ -286,23 +388,24 @@
             {
                 // collision here
             }
-            completion();
         }
+        
+        completion();
     }];
 }
 
 - (void)allRedMove: (void (^)())completion
 {
-    __block int count = redList.count;
-    if (count ==0)
+    __block int rcount = redList.count;
+    if (rcount ==0)
         completion();
     else
     {
         for (Circle *redCircle in redList)
         {
             [self moveRedFromCircle:redCircle toCircle:redCircle.dest completion:^() {
-                count --;
-                if (count ==0)
+                rcount --;
+                if (rcount ==0)
                     completion();
             }];
         }
@@ -316,13 +419,13 @@
 {
     [redList removeAllObjects];
     
-    for (int i=0;i<9;i++)
-        for (int j=0;j<9;j++)
+    for (int i=0;i<numOfDot;i++)
+        for (int j=0;j<numOfDot;j++)
         {
             Circle *c = [self getCircleRow:i Col:j];
             c.numOfRedMoving = 0;
             
-            c.lbDistance.text = [NSString stringWithFormat:@"%d",c.numOfRedMoving];
+//            c.lbDistance.text = [NSString stringWithFormat:@"%d",c.numOfRedMoving];
             c.dest = nil;
             
             if ([c circleColor:@"red"])
@@ -337,7 +440,7 @@
         Circle *c = [arr firstObject];
         c.numOfRedMoving++;
         
-        c.lbDistance.text = [NSString stringWithFormat:@"%d",c.numOfRedMoving];
+//        c.lbDistance.text = [NSString stringWithFormat:@"%d",c.numOfRedMoving];
         if (c.numOfRedMoving >= 2)
         {
             NSLog(@"upcomming collision : %@ num : %d",c,c.numOfRedMoving);
@@ -351,8 +454,8 @@
     [self allRedMove:^{
         [redList removeAllObjects];
         
-        for (int i=0;i<9;i++)
-            for (int j=0;j<9;j++)
+        for (int i=0;i<numOfDot;i++)
+            for (int j=0;j<numOfDot;j++)
             {
                 Circle *c = [self getCircleRow:i Col:j];
                 if (c.numOfRedMoving==1)
@@ -372,6 +475,26 @@
     
 }
 
+- (BOOL)checkIfDoidienBlue:(Circle *)circle
+{
+    int bx = blueCircle.getX;
+    int by = blueCircle.getY;
+    if ((bx>0)&&(bx<numOfDot-1)&&(by>0)&&(by<numOfDot-1))
+    {
+        // blue not in the border
+        return NO;
+    }
+    
+    if ((circle.getX == numOfDot-1-bx) && (circle.getY == numOfDot - 1 - by))
+    {
+        return YES;
+    }
+    
+    return NO;
+    
+}
+
+
 #pragma mark circle delegate
 
 - (void)tapOnCircle:(Circle *)sender
@@ -380,7 +503,7 @@
         return;
     if ([sender circleColor:@"gray"])
     {
-        if ([self checkIfBlueAround:sender])
+        if (([self checkIfBlueAround:sender]) || ([self checkIfDoidienBlue:sender]))
         {
             
             [blueCircle setColor:@"gray"];
@@ -395,6 +518,10 @@
                 noTap = NO;
                 
                 [sender setColor:@"blue"];
+                turn ++;
+                self.lbTurns.text = [NSString stringWithFormat:@"%d", turn];
+                float p = (float)turn/100;
+                [self.progressView setProgress:p animated:YES];
                 blueCircle = sender;
                 [self setDistanceForAll];
                 
@@ -428,4 +555,34 @@
 }
 */
 
+- (IBAction)resetTapped:(id)sender {
+    
+    for (int i=0;i<numOfDot; i++)
+        for (int j=0;j<numOfDot; j++)
+        {
+            Circle *c = [self getCircleRow:i Col:j];
+            [c removeFromSuperview];
+        }
+    
+    numOfDot = [self.numOfRow.text intValue];
+    
+    size = self.map.frame.size.width/(numOfDot+0.5);
+    [self createCircles];
+    
+    power = 0;
+    turn = 0;
+    self.progressView.progress = 0;
+    
+    self.lblPower.text = [NSString stringWithFormat:@"%d",power];
+    
+    redList = [[NSMutableArray alloc] init];
+    noTap = NO;
+    [self.numOfRow resignFirstResponder];
+}
+
+
+-(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
+{
+    [self resetTapped:nil];
+}
 @end

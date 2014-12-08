@@ -27,6 +27,7 @@
 @property (nonatomic, assign) int numOfRedMoving;
 @property (nonatomic, assign) int distance;
 @property (nonatomic, strong) Circle *dest;
+@property (strong, nonatomic) IBOutlet UIImageView *highlightImageView;
 
 @property (strong, nonatomic) IBOutlet UILabel *lbDistance;
 
@@ -36,6 +37,8 @@
 
 - (int)getY;
 
+
+- (CGPoint)corOfCircleBesidePos:(int)pos;
 
 - (BOOL)circleColor:(NSString *)_color;
 - (IBAction)tapped:(id)sender;

@@ -6,6 +6,7 @@
 //  Copyright (c) 2014 hoang. All rights reserved.
 //
 
+#define kCheckIfIphone (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPhone)
 #import "AppDelegate.h"
 
 #import "PlayViewController.h"
@@ -24,7 +25,8 @@
     // Override point for customization after application launch.
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
-    PlayViewController *vc = [[PlayViewController alloc]init];
+    NSString *nib = kCheckIfIphone ? @"PlayViewController" : @"PlayViewController_iPad";
+    PlayViewController *vc = [[PlayViewController alloc]initWithNibName:nib bundle:nil];
     [self.window setRootViewController:vc];
     // Override point for customization after application launch.
     return YES;

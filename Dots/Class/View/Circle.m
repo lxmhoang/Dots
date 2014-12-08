@@ -23,6 +23,71 @@
     color = _color;
     self.imgView.image = [UIImage imageNamed:[NSString stringWithFormat:@"%@circle", color]];
     
+    
+}
+
+- (CGPoint)corOfCircleBesidePos:(int)pos
+{
+    int newX,newY;
+    int x = [self getX];
+    int y = [self getY];
+    switch (pos) {
+        case 1:
+            if (y%2==1)
+            {
+                newX = x;
+                newY = y-1;
+            }else
+            {
+                newX = x-1;
+                newY = y-1;
+            }
+            break;
+        case 2:
+            if (y%2==1)
+            {
+                newX = x+1;
+                newY = y-1;
+            }else
+            {
+                newX = x;
+                newY = y-1;
+            }
+            
+            break;
+        case 3:
+            
+            newX = x+1;
+            newY = y;
+            break;
+        case 4:
+            newY = y+1;
+            if (y%2==1)
+            {
+                newX = x+1;
+            }else
+            {
+                newX = x;
+                
+            }
+            break;
+        case 5:
+            newY = y+1;
+            newX = (y%2==1) ? x: x-1;
+            
+            break;
+        case 6:
+            newX = x-1;
+            newY = y;
+            break;
+            
+        default:
+            break;
+    }
+    
+    
+    return CGPointMake(newX, newY);
+    
 }
 
 - (BOOL)circleColor:(NSString *)_color
@@ -46,7 +111,7 @@
 - (int)getX
 {
     int y = (self.tag-1) % 10;
-    return ((self.tag-1) - y)/10;
+    return (int)((self.tag-1) - y)/10;
 }
 
 

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="6245" systemVersion="14A389" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="6254" systemVersion="14A389" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES">
     <dependencies>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6238"/>
+        <deployment identifier="iOS"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="6247"/>
     </dependencies>
     <objects>
         <placeholder placeholderIdentifier="IBFilesOwner" id="-1" userLabel="File's Owner"/>
@@ -10,23 +11,30 @@
             <rect key="frame" x="0.0" y="0.0" width="30" height="30"/>
             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
             <subviews>
-                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="graycircle.png" translatesAutoresizingMaskIntoConstraints="NO" id="zXa-63-kpd">
+                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="graycircle.png" translatesAutoresizingMaskIntoConstraints="NO" id="zXa-63-kpd">
                     <rect key="frame" x="1" y="1" width="28" height="28"/>
                 </imageView>
-                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="3" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="dfY-xU-q35">
-                    <rect key="frame" x="4" y="4" width="20" height="20"/>
-                    <fontDescription key="fontDescription" type="system" pointSize="12"/>
-                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                    <nil key="highlightedColor"/>
-                </label>
+                <imageView hidden="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" image="yellow_border.png" translatesAutoresizingMaskIntoConstraints="NO" id="Cbf-Q8-zgp" userLabel="highlight">
+                    <rect key="frame" x="1" y="1" width="28" height="28"/>
+                </imageView>
             </subviews>
             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
             <gestureRecognizers/>
+            <constraints>
+                <constraint firstAttribute="bottom" secondItem="zXa-63-kpd" secondAttribute="bottom" constant="-1" id="7gO-cI-NTV"/>
+                <constraint firstItem="zXa-63-kpd" firstAttribute="centerX" secondItem="Cbf-Q8-zgp" secondAttribute="centerX" id="FJC-lg-Qvg"/>
+                <constraint firstItem="zXa-63-kpd" firstAttribute="height" secondItem="Cbf-Q8-zgp" secondAttribute="height" id="GNv-EZ-7fo"/>
+                <constraint firstItem="zXa-63-kpd" firstAttribute="centerY" secondItem="Cbf-Q8-zgp" secondAttribute="centerY" id="OM8-NR-8C2"/>
+                <constraint firstItem="zXa-63-kpd" firstAttribute="top" secondItem="iN0-l3-epB" secondAttribute="top" constant="1" id="d9o-0g-pNk"/>
+                <constraint firstAttribute="trailing" secondItem="zXa-63-kpd" secondAttribute="trailing" constant="1" id="dsd-fC-i1y"/>
+                <constraint firstItem="zXa-63-kpd" firstAttribute="width" secondItem="Cbf-Q8-zgp" secondAttribute="width" id="eNQ-U2-6kD"/>
+                <constraint firstItem="zXa-63-kpd" firstAttribute="leading" secondItem="iN0-l3-epB" secondAttribute="leading" constant="1" id="tC2-J4-fWG"/>
+            </constraints>
             <nil key="simulatedStatusBarMetrics"/>
             <freeformSimulatedSizeMetrics key="simulatedDestinationMetrics"/>
             <connections>
+                <outlet property="highlightImageView" destination="Cbf-Q8-zgp" id="n2g-jb-7ut"/>
                 <outlet property="imgView" destination="zXa-63-kpd" id="Eji-M0-IZF"/>
-                <outlet property="lbDistance" destination="dfY-xU-q35" id="fg5-yO-LhE"/>
                 <outletCollection property="gestureRecognizers" destination="V2W-tP-zr0" appends="YES" id="FDW-mo-mPu"/>
             </connections>
         </view>
@@ -38,5 +46,6 @@
     </objects>
     <resources>
         <image name="graycircle.png" width="246" height="246"/>
+        <image name="yellow_border.png" width="246" height="246"/>
     </resources>
 </document>
