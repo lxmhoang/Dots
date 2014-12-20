@@ -135,6 +135,8 @@
 {
     Circle *circle = [[[NSBundle mainBundle] loadNibNamed:@"Circle" owner:nil options:nil] objectAtIndex:0];
     [circle setFrame:CGRectMake(0, 0, size, size)];
+    [circle.imgView setFrame:CGRectMake(1, 1, size-2, size-2)];
+    [circle.highlightImageView setFrame:CGRectMake(1, 1, size-2, size-2)];
     int x = point.x;
     int y = point.y;
     
